@@ -25,57 +25,12 @@ deploy_node_init:
     # === Проверка SSH доступа с retry ===
     - echo "=== Проверка SSH доступа к деплой ноде ==="
     - |
-      # Параметры retry
-      MAX_RETRIES=20
-      RETRY_INTERVAL=15
-      SSH_TIMEOUT=10
-      
-      # Используем SSH_OPTS из ssh_functions.yml (уже экспортировано)
-      
-      echo "Настройки проверки подключения:"
-      echo "  Максимум попыток: ${MAX_RETRIES}"
-      echo "  Интервал между попытками: ${RETRY_INTERVAL}с"
-      echo ""
-      
-      check_ping() {
-        ping -c 1 -W 2 ${DEPLOY_NODE_HOST} >/dev/null 2>&1
-      }
-      
-      check_ssh() {
-        ssh ${SSH_OPTS} ${DEPLOY_NODE_USER}@${DEPLOY_NODE_HOST} "exit 0" >/dev/null 2>&1
-      }
-      
-      retry_count=0
-      ssh_available=false
-      
-      while [ ${retry_count} -lt ${MAX_RETRIES} ]; do
-        retry_count=$((retry_count + 1))
-        echo "Попытка ${retry_count}/${MAX_RETRIES}"
-        
-        if check_ping; then
-          echo "  [PING] OK"
-          if check_ssh; then
-            echo "  [SSH] OK"
-            ssh_available=true
-            break
-          else
-            echo "  [SSH] FAILED - сервис еще не запущен"
-          fi
-        else
-          echo "  [PING] FAILED - хост загружается"
-        fi
-        
-        if [ ${retry_count} -lt ${MAX_RETRIES} ]; then
-          sleep ${RETRY_INTERVAL}
-        fi
-      done
-      
-      echo ""
-      if [ "${ssh_available}" = "true" ]; then
-        ssh ${SSH_OPTS} ${DEPLOY_NODE_USER}@${DEPLOY_NODE_HOST} "echo 'SSH OK'"
-        echo "SSH доступ установлен (попыток: ${retry_count})"
+      # Используем функцию wait_for_ssh из ssh_functions.yml
+      # Аргументы: host, user, max_retries, retry_interval, timeout
+      if wait_for_ssh "${DEPLOY_NODE_HOST}" "${DEPLOY_NODE_USER}" 20 15 10; then
+        echo "✓ SSH доступ к деплой ноде установлен"
       else
-        echo "ОШИБКА: Не удалось подключиться после ${MAX_RETRIES} попыток"
+        echo "✗ ОШИБКА: Не удалось подключиться к деплой ноде"
         exit 1
       fi
 
