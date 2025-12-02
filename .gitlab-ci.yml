@@ -4,7 +4,12 @@
 #
 # Структура pipeline:
 #   - config_generation: Генерация конфигурационных файлов
-#   - node_preparation: Подготовка деплой ноды и копирование дистрибутивов
+#   - terraform: Применение Terraform конфигурации
+#   - deploy_node_init: Инициализация деплой ноды (SSH, пакеты)
+#   - archive_deployment: Копирование и распаковка архива + конфиги
+#   - cluster_setup: Настройка SSH/sudoers на всех нодах кластера
+#   - corax_deployment: Запуск Ansible playbooks для деплоя Corax
+#   - jam: Финальные действия
 #
 # Требуемые переменные GitLab CI/CD (Settings → CI/CD → Variables):
 #   - DEPLOY_NODE_HOST: IP адрес деплой ноды (например: 10.10.11.41)
@@ -38,10 +43,14 @@
 
 # Включение модулей конфигурации
 include:
-  - local: 'ci/stages.yml'      # Определение stages
-  - local: 'ci/variables.yml'   # Глобальные переменные
-  - local: 'ci/templates.yml'   # Переиспользуемые шаблоны
-  - local: 'ci/jobs/config_generation.yml'  # Job генерации конфигов
-  - local: 'terraform-ci/jobs/terraform.yml' # Job для Terraform
-  - local: 'ci/jobs/node_preparation.yml'   # Job подготовки ноды
+  - local: 'ci/stages.yml'                    # Определение stages
+  - local: 'ci/variables.yml'                 # Глобальные переменные
+  - local: 'ci/templates.yml'                 # Переиспользуемые шаблоны
+  - local: 'ci/templates/ssh_functions.yml'   # SSH функции (переиспользуемые)
+  - local: 'ci/jobs/config_generation.yml'    # Job генерации конфигов
+  - local: 'terraform-ci/jobs/terraform.yml'  # Job для Terraform
+  - local: 'ci/jobs/deploy_node_init.yml'     # Job инициализации деплой ноды
+  - local: 'ci/jobs/archive_deployment.yml'   # Job развертывания архива
+  - local: 'ci/jobs/cluster_setup.yml'        # Job настройки кластера
+  - local: 'ci/jobs/corax_deployment.yml'     # Job развертывания Corax
   - local: 'ci/jobs/jam.yml'
