@@ -1,0 +1,3 @@
+#!/bin/bash
+# Скриптом выкачивается и распаковывается провайдер
+curl -L --create-dirs -o .terraform.d/plugins/cloud.ru/cloudru/cloud/1.5.0/linux_amd64/terraform-provider-cloud_1.5.0_linux_amd64 https://github.com/CLOUDdotRu/evo-terraform/releases/download/1.5.0/terraform-provider-cloud_1.5.0_linux_amd64 && chmod +x .terraform.d/plugins/cloud.ru/cloudru/cloud/1.5.0/linux_amd64/terraform-provider-cloud_1.5.0_linux_amd64

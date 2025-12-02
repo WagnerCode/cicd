@@ -1,0 +1,64 @@
+jam:
+  stage: jam
+  extends: .common_job
+  variables:
+    SSH_TIMEOUT: "10"  # значение по умолчанию в секундах
+  dependencies: 
+    - prepare_deploy_node
+    - generate_configs
+  
+  script:
+    - echo "JAM"
+    - echo "Проверка доступности inventory.ini:"
+    - ls -lh ${RUNNER_WORKDIR}/
+    - mkdir -p ${RUNNER_WORKDIR}/group_vars
+    - echo "project_id:${project_id}" > ${RUNNER_WORKDIR}/group_vars/secrets.yaml
+    - echo "log_group_id:${log_group_id}" >> ${RUNNER_WORKDIR}/group_vars/secrets.yaml
+    - echo "sa_journal_api_key:${sa_journal_api_key}" >> ${RUNNER_WORKDIR}/group_vars/secrets.yaml
+    - echo "sa_audit_api_key:${sa_audit_api_key}" >> ${RUNNER_WORKDIR}/group_vars/secrets.yaml
+    - chmod 600 ${RUNNER_WORKDIR}/group_vars/secrets.yaml
+    - echo "✓ secrets.yaml создан"
+    - cat ${RUNNER_WORKDIR}/inventory.ini
+    - |
+      scp -i ~/.ssh/id_rsa_corax \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        -o LogLevel=ERROR \
+        -o ConnectTimeout=${SSH_TIMEOUT:-10} \
+        -o BatchMode=yes \
+        ${RUNNER_WORKDIR}/inventory.ini \
+        root@${DEPLOY_NODE_HOST}:/corax/dev_inventory/hosts.ini
+    - |
+      scp -i ~/.ssh/id_rsa_corax \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        -o LogLevel=ERROR \
+        -o ConnectTimeout=${SSH_TIMEOUT:-10} \
+        -o BatchMode=yes \
+        ${RUNNER_WORKDIR}/group_vars/secrets.yaml \
+        root@${DEPLOY_NODE_HOST}:/corax/dev_inventory/group_vars/all/secrets.yaml
+    - echo "=== Запуск Ansible playbook для подготовки Corax ==="
+    - |
+      ssh -i ~/.ssh/id_rsa_corax \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        -o LogLevel=ERROR \
+        -o ConnectTimeout=${SSH_TIMEOUT:-10} \
+        -o BatchMode=yes \
+        root@${DEPLOY_NODE_HOST} bash <<EOFREMOTE
+      set -e
+      cd /corax/dev_inventory
+      echo "Текущая директория: \$(pwd)"
+      export ANSIBLE_CONFIG=./ansible.cfg
+      ansible-playbook -i hosts.ini playbooks/audit.yaml -l kafka
+      ansible-playbook -i hosts.ini playbooks/journal.yaml -l kafka,zookeeper,crxsr,crxui
+      echo "✓ Ansible playbooks выполнены"
+      EOFREMOTE
+    - echo "✓ Деплой завершен"
+
+  when: manual
+
+  artifacts:
+    paths:
+      - ${RUNNER_WORKDIR}/group_vars/secrets.yaml
+    expire_in: 1 hour
