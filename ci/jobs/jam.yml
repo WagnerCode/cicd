@@ -4,7 +4,7 @@ jam:
   variables:
     SSH_TIMEOUT: "10"  # значение по умолчанию в секундах
   dependencies: 
-    - prepare_deploy_node
+    - corax_deployment
     - generate_configs
   
   script:

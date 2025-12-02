@@ -6,8 +6,8 @@
 stages:
   - config_generation    # Генерация конфигурационных файлов
   - terraform            # Применение Terraform конфигурации
-  - node_preparation     # Подготовка деплой ноды
- #-
- #-
- #- lvm 
+  - deploy_node_init     # Инициализация деплой ноды (SSH, пакеты)
+  - archive_deployment   # Копирование и распаковка архива + конфиги
+  - cluster_setup        # Настройка SSH/sudoers на всех нодах кластера
+  - corax_deployment     # Запуск Ansible playbooks для деплоя Corax
   - jam
