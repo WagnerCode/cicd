@@ -22,14 +22,7 @@ cluster_setup:
     - echo "Целевая директория - ${CORAX_DIR}"
     - echo ""
 
-    # === Определение SSH_OPTS ===
-    - |
-      SSH_OPTS="-i ~/.ssh/id_rsa_corax \
-                -o StrictHostKeyChecking=no \
-                -o UserKnownHostsFile=/dev/null \
-                -o LogLevel=ERROR \
-                -o ConnectTimeout=10 \
-                -o BatchMode=yes"
+    # SSH_OPTS уже экспортировано в ssh_functions.yml
 
     # === Настройка SSH ключей и hosts на всех нодах (единый цикл) ===
     - echo "=== Настройка SSH, hosts и sudoers на всех узлах кластера ==="
@@ -47,17 +40,18 @@ cluster_setup:
       echo "$PUBLIC_KEY"
       echo ""
       
-      # Счетчики успешных операций
-      SUCCESS_COUNT=0
-      FAIL_COUNT=0
+      # Подсчет нод
       TOTAL_NODES=$(echo "$CORAX_NODES" | jq -r '.[].host' | wc -l)
       
       echo "Всего нод для настройки: ${TOTAL_NODES}"
       echo ""
       echo "=========================================="
       
-      # Единый цикл по всем нодам кластера
-      echo "$CORAX_NODES" | jq -r '.[].host' | while read -r node_host; do
+      # Создаем временный файл для хранения списка нод
+      NODE_LIST=$(echo "$CORAX_NODES" | jq -r '.[].host')
+      
+      # Единый цикл по всем нодам кластера (используем for вместо while с pipe)
+      for node_host in $NODE_LIST; do
         echo ""
         echo ">>> Настройка узла: $node_host"
         echo "----------------------------------------"

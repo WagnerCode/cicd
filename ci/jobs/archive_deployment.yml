@@ -24,14 +24,7 @@ archive_deployment:
     - echo "Режим безопасности - ${CLUSTER_SECURITY_MODE}"
     - echo ""
 
-    # === Определение SSH_OPTS ===
-    - |
-      SSH_OPTS="-i ~/.ssh/id_rsa_corax \
-                -o StrictHostKeyChecking=no \
-                -o UserKnownHostsFile=/dev/null \
-                -o LogLevel=ERROR \
-                -o ConnectTimeout=10 \
-                -o BatchMode=yes"
+    # SSH_OPTS уже экспортировано в ssh_functions.yml
 
     # === Подготовка директории на деплой ноде ===
     - echo "=== Подготовка директории ${CORAX_DIR} на деплой ноде ==="

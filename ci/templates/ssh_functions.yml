@@ -76,26 +76,6 @@
         fi
       }
 
-      # Функция: iterate_cluster_nodes
-      # Универсальная функция обхода нод из CORAX_NODES
-      # Аргументы: callback_function
-      # Callback получает: node_host, node_name, node_user, node_index
-      iterate_cluster_nodes() {
-        local callback="$1"
-        local index=0
-        
-        echo "$CORAX_NODES" | jq -c '.[]' | while read -r node_json; do
-          local node_host=$(echo "$node_json" | jq -r '.host')
-          local node_name=$(echo "$node_json" | jq -r '.name')
-          local node_user=$(echo "$node_json" | jq -r '.user')
-          
-          # Вызов callback функции с параметрами
-          $callback "$node_host" "$node_name" "$node_user" "$index"
-          
-          index=$((index + 1))
-        done
-      }
-
       # Экспортируем SSH_OPTS для глобального использования
       export SSH_OPTS=$(setup_ssh_opts 10)
       

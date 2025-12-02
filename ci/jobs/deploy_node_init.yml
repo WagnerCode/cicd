@@ -30,13 +30,7 @@ deploy_node_init:
       RETRY_INTERVAL=15
       SSH_TIMEOUT=10
       
-      # SSH опции для CI/CD
-      SSH_OPTS="-i ~/.ssh/id_rsa_corax \
-                -o StrictHostKeyChecking=no \
-                -o UserKnownHostsFile=/dev/null \
-                -o LogLevel=ERROR \
-                -o ConnectTimeout=${SSH_TIMEOUT} \
-                -o BatchMode=yes"
+      # Используем SSH_OPTS из ssh_functions.yml (уже экспортировано)
       
       echo "Настройки проверки подключения:"
       echo "  Максимум попыток: ${MAX_RETRIES}"
