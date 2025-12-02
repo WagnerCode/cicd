@@ -129,7 +129,7 @@ cluster_setup:
       chmod 700 ~/.ssh
 
       # Копирование SSH ключа в домашнюю директорию пользователя
-      cp /corax/corax_prepare/ssh_private_key ~/.ssh/id_rsa
+      cp ${CORAX_DIR}/ssh_private_key ~/.ssh/id_rsa
       chmod 600 ~/.ssh/id_rsa
 
       # Генерация публичного ключа из приватного
